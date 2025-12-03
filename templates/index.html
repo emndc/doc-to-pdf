@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UDF Çevirici Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab:hover {
+            color: #764ba2;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            background: #e8ebff;
+            border-color: #764ba2;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .file-label:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .conversion-options {
+            margin: 30px 0;
+        }
+        
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+        
+        .radio-option label {
+            display: block;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .radio-option input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .radio-option label:hover {
+            border-color: #667eea;
+        }
+        
+        .convert-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .convert-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-list.show {
+            display: block;
+        }
+        
+        .file-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item-remove {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .feature-desc {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 UDF Çevirici Pro</h1>
+        <p class="subtitle">Profesyonel DOCX ↔ UDF ↔ PDF Dönüştürücü</p>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('single')">🔄 Tekli Dönüştürme</button>
+            <button class="tab" onclick="switchTab('batch')">📦 Toplu Dönüştürme</button>
+        </div>
+        
+        <div id="single-tab" class="tab-content active">
+            <form method="POST" action="/convert" enctype="multipart/form-data" id="singleForm">
+                <input type="hidden" name="is_batch" value="false">
+                
+                <div class="upload-area" id="singleUploadArea">
+                    <div class="upload-icon">📎</div>
+                    <p>Dosyayı buraya sürükleyin veya tıklayın</p>
+                    <label for="singleFileInput" class="file-label">Dosya Seç</label>
+                    <input type="file" id="singleFileInput" name="file" accept=".docx,.udf,.pdf" required>
+                    <div class="file-info" id="singleFileInfo"></div>
+                </div>
+                
+                <div class="conversion-options">
+                    <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Dönüştürme Türü</h3>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="single_docx_to_udf" name="conversion_type" value="docx_to_udf" checked>
+                            <label for="single_docx_to_udf">📝 DOCX → UDF</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="single_udf_to_docx" name="conversion_type" value="udf_to_docx">
+                            <label for="single_udf_to_docx">📄 UDF → DOCX</label>
+                        </div>
+                        {% if pdf_support %}
+                        <div class="radio-option">
+                            <input type="radio" id="single_pdf_to_udf" name="conversion_type" value="pdf_to_udf">
+                            <label for="single_pdf_to_udf">📕 PDF → UDF</label>
+                        </div>
+                        {% endif %}
+                        {% if reportlab_support %}
+                        <div class="radio-option">
+                            <input type="radio" id="single_udf_to_pdf" name="conversion_type" value="udf_to_pdf">
+                            <label for="single_udf_to_pdf">📄 UDF → PDF</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <button type="submit" class="convert-btn" id="singleConvertBtn" disabled>
+                    🔄 Dönüştür
+                </button>
+            </form>
+        </div>
+        
+        <div id="batch-tab" class="tab-content">
+            <form method="POST" action="/convert" enctype="multipart/form-data" id="batchForm">
+                <input type="hidden" name="is_batch" value="true">
+                
+                <div class="upload-area" id="batchUploadArea">
+                    <div class="upload-icon">📦</div>
+                    <p>Birden fazla dosya seçin veya sürükleyin</p>
+                    <label for="batchFileInput" class="file-label">Dosyaları Seç</label>
+                    <input type="file" id="batchFileInput" name="files" accept=".docx,.udf,.pdf" multiple required>
+                    <div class="file-list" id="batchFileList"></div>
+                </div>
+                
+                <div class="conversion-options">
+                    <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Dönüştürme Türü</h3>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="batch_docx_to_udf" name="conversion_type" value="docx_to_udf" checked>
+                            <label for="batch_docx_to_udf">📝 DOCX → UDF</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="batch_udf_to_docx" name="conversion_type" value="udf_to_docx">
+                            <label for="batch_udf_to_docx">📄 UDF → DOCX</label>
+                        </div>
+                        {% if pdf_support %}
+                        <div class="radio-option">
+                            <input type="radio" id="batch_pdf_to_udf" name="conversion_type" value="pdf_to_udf">
+                            <label for="batch_pdf_to_udf">📕 PDF → UDF</label>
+                        </div>
+                        {% endif %}
+                        {% if reportlab_support %}
+                        <div class="radio-option">
+                            <input type="radio" id="batch_udf_to_pdf" name="conversion_type" value="udf_to_pdf">
+                            <label for="batch_udf_to_pdf">📄 UDF → PDF</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <button type="submit" class="convert-btn" id="batchConvertBtn" disabled>
+                    🔄 Toplu Dönüştür (ZIP olarak indir)
+                </button>
+            </form>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Hızlı Dönüştürme</div>
+                <div class="feature-desc">Saniyeler içinde dönüştürün</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Güvenli</div>
+                <div class="feature-desc">Dosyalar sunucuda saklanmaz</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📦</div>
+                <div class="feature-title">Toplu İşlem</div>
+                <div class="feature-desc">Birden fazla dosyayı aynı anda</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">Format Koruma</div>
+                <div class="feature-desc">Bold, italic, hizalama korunur</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'single') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('single-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('batch-tab').classList.add('active');
+            }
+        }
+        
+        const singleUploadArea = document.getElementById('singleUploadArea');
+        const singleFileInput = document.getElementById('singleFileInput');
+        const singleFileInfo = document.getElementById('singleFileInfo');
+        const singleConvertBtn = document.getElementById('singleConvertBtn');
+        
+        singleFileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                singleFileInfo.textContent = `📁 ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                singleFileInfo.classList.add('show');
+                singleConvertBtn.disabled = false;
+            }
+        });
+        
+        setupDragDrop(singleUploadArea, singleFileInput);
+        
+        const batchUploadArea = document.getElementById('batchUploadArea');
+        const batchFileInput = document.getElementById('batchFileInput');
+        const batchFileList = document.getElementById('batchFileList');
+        const batchConvertBtn = document.getElementById('batchConvertBtn');
+        let batchFiles = [];
+        
+        batchFileInput.addEventListener('change', function() {
+            batchFiles = Array.from(this.files);
+            updateBatchFileList();
+        });
+        
+        function updateBatchFileList() {
+            if (batchFiles.length === 0) {
+                batchFileList.classList.remove('show');
+                batchConvertBtn.disabled = true;
+                return;
+            }
+            
+            batchFileList.innerHTML = '';
+            batchFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span>📄 ${file.name} (${(file.size / 1024).toFixed(2)} KB)</span>
+                    <button type="button" class="file-item-remove" onclick="removeBatchFile(${index})">×</button>
+                `;
+                batchFileList.appendChild(item);
+            });
+            
+            batchFileList.classList.add('show');
+            batchConvertBtn.disabled = false;
+        }
+        
+        function removeBatchFile(index) {
+            batchFiles.splice(index, 1);
+            updateBatchFileList();
+        }
+        
+        setupDragDrop(batchUploadArea, batchFileInput);
+        
+        function setupDragDrop(area, input) {
+            area.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            area.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            area.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    input.files = files;
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+            
+            area.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('file-label') && 
+                    !e.target.classList.contains('file-item-remove')) {
+                    input.click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
